@@ -25,56 +25,57 @@ import ballerina/system;
 string dateString = "";
 
 function costructRequestHeaders(http:Request request, string httpMethod, string resourceType, string resourceLink,
-                            string masterKey, string contentType, RequestOptions requestOptions) returns error?{
+                                string masterKey, string contentType, RequestOptions? requestOptions = ()) returns error
+                                                                                                                   ? {
     time:Time time = time:currentTime();
     time:Timezone zoneValue = { zoneId: "GMT" };
     time:Time standardTime = new(time.time, zoneValue);
     dateString = standardTime.format(DATE_TIME_FORMAT);
 
     string stringToSign = httpMethod.toLower() + NEW_LINE + resourceType.toLower() + NEW_LINE + resourceLink
-        + NEW_LINE + dateString.toLower() + NEW_LINE + EMPTY_STRING  + NEW_LINE;
+        + NEW_LINE + dateString.toLower() + NEW_LINE + EMPTY_STRING + NEW_LINE;
     string signature = crypto:hmac(stringToSign, masterKey, keyEncoding = crypto:BASE64,
-                                crypto:SHA256).base16ToBase64Encode();
+        crypto:SHA256).base16ToBase64Encode();
     string authHeaderString = check http:encode("type=" + MASTER_TOKEN + "&ver=" + TOKEN_VERSION + "&sig=" + signature,
         "UTF-8");
     request.setHeader("Authorization", authHeaderString);
     request.setHeader("x-ms-version", X_MS_VERSION);
     request.setHeader("x-ms-date", dateString);
     request.setHeader("Content-Type", contentType);
-    if(requestOptions.length() != 0) {
-        var requestHeaders = setOptionalHeaders(request, requestOptions);
+    if (requestOptions != ()) {
+        var requestHeaders = setOptionalHeaders(request, requestOptions = requestOptions);
         if (requestHeaders is error) {
             error err = error(COSMOS_DB_ERROR_CODE,
-                { message: "Error occurred while constructing request optional headers" });
+            { message: "Error occurred while constructing request optional headers" });
             return err;
         }
     }
     return ();
 }
 
-function setOptionalHeaders(http:Request request, RequestOptions requestOptions) returns error? {
+function setOptionalHeaders(http:Request request, RequestOptions? requestOptions = ()) returns error? {
     string sessionToken = requestOptions["sessionToken"] ?: "";
-    if(sessionToken != "") {
+    if (sessionToken != "") {
         request.setHeader(SESSION_TOKEN, sessionToken);
     }
 
     string consistencyLevel = requestOptions["consistencyLevel"] ?: "";
-    if(consistencyLevel != "") {
+    if (consistencyLevel != "") {
         request.setHeader(CONSISTENCY_LEVEL, consistencyLevel);
     }
 
     string continuationToken = requestOptions["continuationToken"] ?: "";
-    if(continuationToken != "") {
+    if (continuationToken != "") {
         request.setHeader(CONTINUATION, continuationToken);
     }
 
     int partitionKeyRangeId = requestOptions["partitionKeyRangeId"] ?: 0;
-    if(partitionKeyRangeId != 0) {
+    if (partitionKeyRangeId != 0) {
         request.setHeader(PARTITION_KEY_RANGE_ID, <string>partitionKeyRangeId);
     }
 
     int pageSize = requestOptions["pageSize"] ?: -1;
-    if(pageSize != -1) {
+    if (pageSize != -1) {
         request.setHeader(PAGE_SIZE, <string>pageSize);
     }
     return ();
@@ -82,17 +83,17 @@ function setOptionalHeaders(http:Request request, RequestOptions requestOptions)
 
 function extractResponseHeaders(http:Response httpResponse) returns ResourceResponse {
     ResourceResponse resourceResponse = {};
-    if(httpResponse.hasHeader(ETAG)) {
-        resourceResponse.etag =  httpResponse.getHeader(ETAG);
+    if (httpResponse.hasHeader(ETAG)) {
+        resourceResponse.etag = httpResponse.getHeader(ETAG);
     }
-    if(httpResponse.hasHeader(ACTIVITY_ID)) {
-        resourceResponse.activityId =  httpResponse.getHeader(ACTIVITY_ID);
+    if (httpResponse.hasHeader(ACTIVITY_ID)) {
+        resourceResponse.activityId = httpResponse.getHeader(ACTIVITY_ID);
     }
-    if(httpResponse.hasHeader(OWNER_FULL_NAME)) {
-        resourceResponse.activityId =  httpResponse.getHeader(OWNER_FULL_NAME);
+    if (httpResponse.hasHeader(OWNER_FULL_NAME)) {
+        resourceResponse.activityId = httpResponse.getHeader(OWNER_FULL_NAME);
     }
-    if(httpResponse.hasHeader(SESSION_TOKEN)) {
-        resourceResponse.sessionToken =  httpResponse.getHeader(SESSION_TOKEN);
+    if (httpResponse.hasHeader(SESSION_TOKEN)) {
+        resourceResponse.sessionToken = httpResponse.getHeader(SESSION_TOKEN);
     }
     return resourceResponse;
 }
@@ -101,3 +102,12 @@ function setResponseError(json jsonResponse) returns error {
     error err = error(COSMOS_DB_ERROR_CODE, { message: jsonResponse.message.toString() });
     return err;
 }
+
+//function processListDocumentResponse(json jsonResponse) returns DocumentListResponse {
+//    ResourceResponse resourceResponse = {};
+//    DocumentListResponse documentListResponse = {};
+//    resourceResponse = extractResponseHeaders(httpResponse);
+//    documentListResponse = convertToDocumentListResponse(jsonResponse);
+//    documentListResponse.resourceResponse = resourceResponse;
+//    return documentListResponse;
+//}

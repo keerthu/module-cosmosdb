@@ -26,17 +26,176 @@ CosmosDBConfiguration cosmosDBConfig = {
 };
 
 Client cosmosdbClient = new(cosmosDBConfig);
-
+string databaseID = "testBallarinaDB2";
+string collectionID = "testBallarinaColl2";
+string documentID = "testBallarinaDoc2";
 
 @test:Config
 function testCreateDatabase() {
     io:println("-----------------Test case for createDatabase method------------------");
-    RequestOptions requestOptions = {};
-    var dbRes = cosmosdbClient->createDatabase("testBaldb", requestOptions);
-    if (dbRes is DatabaseCreateResponse) {
-        test:assertNotEquals(dbRes.id, null, msg = "Failed to create database");
+    var dbRes = cosmosdbClient->createDatabase(databaseID);
+    if (dbRes is DatabaseResponse) {
+        test:assertNotEquals(dbRes.database.id, null, msg = "Failed to create database");
     } else {
         test:assertFail(msg = <string>dbRes.detail().message);
     }
 }
 
+@test:Config {
+    dependsOn: ["testCreateDatabase"]
+}
+function testGetDatabase() {
+    io:println("-----------------Test case for getDatabase method------------------");
+    var dbRes = cosmosdbClient->getDatabase(databaseID);
+    if (dbRes is DatabaseResponse) {
+        test:assertNotEquals(dbRes.database.id, null, msg = "Failed to get database");
+    } else {
+        test:assertFail(msg = <string>dbRes.detail().message);
+    }
+}
+
+@test:Config {
+    dependsOn: ["testCreateDatabase"]
+}
+function testListDatabases() {
+    io:println("-----------------Test case for getDatabase method------------------");
+    var dbRes = cosmosdbClient->listDatabases();
+    if (dbRes is DatabaseListResponse) {
+        io:println(dbRes);
+        test:assertNotEquals(dbRes.databases, null, msg = "Failed to get database");
+    } else {
+        test:assertFail(msg = <string>dbRes.detail().message);
+    }
+}
+
+@test:Config {
+    dependsOn: ["testCreateDatabase", "testGetDatabase", "testListDatabases", "testListCollections",
+                "testDeleteCollection"]
+}
+function testDeleteDatabase() {
+    io:println("-----------------Test case for deleteDatabase method------------------");
+    var dbRes = cosmosdbClient->deleteDatabase(databaseID);
+    if (dbRes is ResourceResponse) {
+        test:assertNotEquals(dbRes, null, msg = "Failed to delete database");
+    } else {
+        test:assertFail(msg = <string>dbRes.detail().message);
+    }
+}
+
+@test:Config {
+    dependsOn: ["testCreateDatabase"]
+}
+function testCreateCollection() {
+    io:println("-----------------Test case for createCollection method------------------");
+    var dbRes = cosmosdbClient->createCollection(databaseID, collectionID);
+    if (dbRes is CollectionResponse) {
+        test:assertNotEquals(dbRes.collection.id, null, msg = "Failed to create collection");
+    } else {
+        test:assertFail(msg = <string>dbRes.detail().message);
+    }
+}
+
+@test:Config {
+    dependsOn: ["testCreateCollection"]
+}
+function testListCollections() {
+    io:println("-----------------Test case for listCollections method------------------");
+    var dbRes = cosmosdbClient->listCollections(databaseID);
+    if (dbRes is DocumentCollectionsResponse) {
+        io:println(dbRes);
+        test:assertNotEquals(dbRes.documentCollections, null, msg = "Failed to list collections");
+    } else {
+        test:assertFail(msg = <string>dbRes.detail().message);
+    }
+}
+
+@test:Config {
+    dependsOn: ["testCreateCollection"]
+}
+function testGetCollection() {
+    io:println("-----------------Test case for getCollection method------------------");
+    var dbRes = cosmosdbClient->getCollection(databaseID, collectionID);
+    if (dbRes is CollectionResponse) {
+        test:assertNotEquals(dbRes.collection.id, null, msg = "Failed to get collection");
+    } else {
+        test:assertFail(msg = <string>dbRes.detail().message);
+    }
+}
+
+@test:Config {
+    dependsOn: ["testCreateCollection", "testGetCollection", "testListCollections", "testListDocuments"]
+}
+function testDeleteCollection() {
+    io:println("-----------------Test case for deleteDatabase method------------------");
+    var dbRes = cosmosdbClient->deleteCollection(databaseID, collectionID);
+    if (dbRes is ResourceResponse) {
+        test:assertNotEquals(dbRes, null, msg = "Failed to delete collection");
+    } else {
+        test:assertFail(msg = <string>dbRes.detail().message);
+    }
+}
+
+@test:Config {
+    dependsOn: ["testCreateDatabase", "testCreateCollection"]
+}
+function testCreateDocument() {
+    io:println("-----------------Test case for createDocument method------------------");
+    json content = {
+        "id": "AndersenFamily",
+        "LastName": "Andersen",
+        "Parents": [
+            {
+                "FamilyName": null,
+                "FirstName": "Thomas"
+            },
+            {
+                "FamilyName": null,
+                "FirstName": "Mary Kay"
+            }
+        ],
+        "Children": [
+            {
+                "FamilyName": null,
+                "FirstName": "Henriette Thaulow",
+                "Gender": "female",
+                "Grade": 5,
+                "Pets": [
+                    {
+                        "GivenName": "Fluffy"
+                    }
+                ]
+            }
+        ],
+        "Address": {
+            "State": "WA",
+            "County": "King",
+            "City": "Seattle"
+        },
+        "IsRegistered": true
+    };
+    DocumentCreateOptions documentCreateOptions = {};
+    var dbRes = cosmosdbClient->createDocument(databaseID, collectionID, documentID, content);
+    if (dbRes is ResourceResponse) {
+        test:assertNotEquals(dbRes, null, msg = "Failed to create documentation");
+    } else {
+        test:assertFail(msg = <string>dbRes.detail().message);
+    }
+}
+
+
+@test:Config {
+    dependsOn: ["testCreateDocument"]
+}
+function testListDocuments() {
+    io:println("-----------------Test case for listDocuments method------------------");
+    DocumentListOptions documentListOptions = {maxItemCount:2};
+    var dbRes = cosmosdbClient->listDocuments(databaseID,collectionID, documentListOptions = documentListOptions);
+    if (dbRes is DocumentListResponse) {
+        io:println("-----------------\n\n\n\n\n------------------");
+        io:println(dbRes);
+        io:println("-----------------\n\n\n\n\n------------------");
+        test:assertNotEquals(dbRes.documents, null, msg = "Failed to list documents");
+    } else {
+        test:assertFail(msg = <string>dbRes.detail().message);
+    }
+}

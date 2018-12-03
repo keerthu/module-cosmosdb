@@ -14,7 +14,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
-final string DB_PATH = "/dbs";
+final string DB_PATH = "dbs";
+final string COLL_PATH = "colls";
+final string DOC_PATH = "docs";
 
 
 final string MASTER_TOKEN = "master";
@@ -27,6 +29,7 @@ final string QUERY_JSON_CONTENT_TYPE = "application/query+json";
 
 //Symbols
 final string NEW_LINE = "\n";
+final string SLASH = "/";
 final string EMPTY_STRING = "";
 
 // Error Codes
@@ -48,4 +51,9 @@ final string OWNER_FULL_NAME = "x-ms-alt-content-path";
 final string RETRY_AFTER_IN_MILLISECONDS = "x-ms-retry-after-ms";
 final string PARTITION_KEY = "x-ms-documentdb-partitionkey";
 final string PARTITION_KEY_RANGE_ID = "x-ms-documentdb-partitionkeyrangeid";
+final string MAX_ITEM_COUNT = "x-ms-max-item-count";
 
+
+public const INCLUDE = "Include";
+public const EXCLUDE = "Exclude";
+public type INDEXING_DIRECTIVE "Include"|"Exclude";
