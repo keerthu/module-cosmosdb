@@ -52,6 +52,7 @@ final string RETRY_AFTER_IN_MILLISECONDS = "x-ms-retry-after-ms";
 final string PARTITION_KEY = "x-ms-documentdb-partitionkey";
 final string PARTITION_KEY_RANGE_ID = "x-ms-documentdb-partitionkeyrangeid";
 final string MAX_ITEM_COUNT = "x-ms-max-item-count";
+final string IS_QUERY = "x-ms-documentdb-isquery";
 
 
 public const INCLUDE = "Include";

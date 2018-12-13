@@ -105,6 +105,7 @@ public type CollectionResponse record {
 
 public type DocumentQueryOptions record {
     RequestOptions requestOptions = {};
+    int maxItemCount?;
 };
 
 public type DocumentCreateOptions record {
@@ -130,16 +131,12 @@ public type DocumentListResponse record {
     int count?;
 };
 
+public type DocumentResponse record {
+    ResourceResponse resourceResponse = {};
+    Document document = {};
+};
+
 public type DocumentListOptions record {
     int maxItemCount?;
     RequestOptions requestOptions = {};
 };
-
-public type Parameter record {
-    SQLType sqlType;
-    any value = ();
-    !...
-};
-
-# The parameter passed into the operations.
-type Param string|int|boolean|float|byte[]|Parameter;

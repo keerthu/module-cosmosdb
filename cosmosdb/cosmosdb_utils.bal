@@ -41,7 +41,7 @@ function costructRequestHeaders(http:Request request, string httpMethod, string 
     request.setHeader("Authorization", authHeaderString);
     request.setHeader("x-ms-version", X_MS_VERSION);
     request.setHeader("x-ms-date", dateString);
-    request.setHeader("Content-Type", contentType);
+    request.setHeader("content-type", contentType);
     if (requestOptions != ()) {
         var requestHeaders = setOptionalHeaders(request, requestOptions = requestOptions);
         if (requestHeaders is error) {
@@ -103,6 +103,32 @@ function setResponseError(json jsonResponse) returns error {
     return err;
 }
 
+function generatePayload(string queryString, any... parameters) returns json|error {
+    string generatedQuery = queryString;
+    json[] jsonParameters =[];
+    int i = 0;
+    io:println("****************parameters.length()****************");
+    io:println(parameters.length());
+    if (parameters.length() != 0) {
+        foreach var param in parameters {
+            string id = system:uuid();
+            json jsonParam = {"name" : id};
+            var jsonVal = json.convert(param);
+            if (jsonVal is json) {
+                jsonParam.value = jsonVal;
+            } else {
+                error err = error(COSMOS_DB_ERROR_CODE,
+                { message: "Error occurred while converting the value as json" });
+                return err;
+            }
+            generatedQuery = generatedQuery.replaceFirst("[?]+", "@" + id);
+            jsonParameters[i] = jsonParam;
+            i = i + 1;
+        }
+    }
+    json jsonPayload = {"query" : generatedQuery, "parameters" : jsonParameters};
+    return {"query" : generatedQuery, "parameters" : jsonParameters};
+}
 //function processListDocumentResponse(json jsonResponse) returns DocumentListResponse {
 //    ResourceResponse resourceResponse = {};
 //    DocumentListResponse documentListResponse = {};
